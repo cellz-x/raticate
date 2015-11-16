@@ -56,6 +56,7 @@ double robo_y;
 double opp_x;
 double opp_y;
 
+
 void CHASE_MAIN(struct RoboAI *ai, int state){
 	
 	switch (state){
@@ -571,9 +572,10 @@ void AI_main(struct RoboAI *ai, struct blob *blobs, void *state)
   fprintf(stderr,"Just trackin'!\n");	// bot, opponent, and ball.
   track_agents(ai,blobs);		// Currently, does nothing but endlessly track
   
+  
   if (ai->st.state<200) {
-	  PENALITY_MAIN(ai, state); 
-	  printf("STATE: %i\n", ai->st.state);
+	  ai->st.state = PENALITY_MAIN(ai, ai->st.state); 
+	  //printf("STATE: %i\n", ai->st.state);
   }
   
  }
@@ -593,23 +595,26 @@ void AI_main(struct RoboAI *ai, struct blob *blobs, void *state)
  You will lose marks if AI_main() is cluttered with code that doesn't belong
  there.
 **********************************************************************************/
-void PENALITY_MAIN(struct RoboAI *ai, void *state){
+int PENALITY_MAIN(struct RoboAI *ai, int state){
 	
-double gate[] = {(0 - ai->st.side) * FIELD_X, FIELD_Y / 2.0};
-   	
-   switch (ai->st.state){
+   double gate[] = {(0 - ai->st.side) * FIELD_X, FIELD_Y / 2.0};
+   printf("STATE: %i\n", state);
+   switch (state){
 	   case 101: //Robot not behind ball w.r.t goal
 	  
 			printf("BALL: X:Y (%f,%f)\n", ai->st.ball->cx,ai->st.ball->cy);
 			printf("Self: X:Y (%f,%f)\n", ai->st.self->cx,ai->st.self->cy);
 			printf("SIDE: %i\n", ai->st.side);
-			//ai->st.state = 101;
+			state = 102;
 	   case 102: //Robot behind ball w.r.t goal and is at the incorrect angle for kicking
 	   case 103: //robot behind ball w.r.t goal and is at the correct angle for kicking
 	   case 104: //robot behind ball w.r.t goal and is at the correct angle for kicking robot is preparing to kick 
 	   case 105: //robot is kicking
 			break;
    }
+   
+   return state;
+
        
        
 }
