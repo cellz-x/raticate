@@ -42,14 +42,21 @@
 #define NOT_BEHIND_BALL 205
 #define KICKED_BALL 206 
 #define MISSED_KICKED 207
+#define FINISH 208
+
+//variable
+#define FIELD_X 720
+#define FIELD_Y 720
 
 //robot and ball position//
 double ball_x;
 double ball_y; 
 double robo_x; 
 double robo_y;
+double opp_x;
+double opp_y;
 
-void fsm_AI_CHASE(struct RoboAI *ai, int state){
+void CHASE_MAIN(struct RoboAI *ai, int state){
 	
 	switch (state){
 		case START:
@@ -61,7 +68,7 @@ void fsm_AI_CHASE(struct RoboAI *ai, int state){
 			robo_x = ai->st.self->cx;
 			robo_y = ai->st.self->cy;
 			
-			if (ball_x != NULL) state = 202;
+			if (ball_x) state = 202;
 			else state = 203;
 			break;
 		
@@ -75,7 +82,7 @@ void fsm_AI_CHASE(struct RoboAI *ai, int state){
 			//unlikely to happen leave empty for now
 			//wait until ball is found
 			
-			while (ball_x == NULL){
+			while (!ball_x){
 				ball_x = ai->st.ball->cx;
 				ball_y = ai->st.ball->cy;
 				robo_x = ai->st.self->cx;
@@ -98,8 +105,9 @@ void fsm_AI_CHASE(struct RoboAI *ai, int state){
 			//If not, change state to 207
 		case MISSED_KICKED:
 			//change state to 208
-		case FINSH:
+		case FINISH:
 			//change state to 201 to repeat
+			break;
 	}
 
 }
@@ -564,7 +572,8 @@ void AI_main(struct RoboAI *ai, struct blob *blobs, void *state)
   track_agents(ai,blobs);		// Currently, does nothing but endlessly track
   
   if (ai->st.state<200) {
-	  PENALITY_MAIN(ai, blobs, state); 
+	  PENALITY_MAIN(ai, state); 
+	  printf("STATE: %i\n", ai->st.state);
   }
   
  }
@@ -584,23 +593,23 @@ void AI_main(struct RoboAI *ai, struct blob *blobs, void *state)
  You will lose marks if AI_main() is cluttered with code that doesn't belong
  there.
 **********************************************************************************/
-void PENALITY_MAIN(struct RoboAI *ai, struct blob *blobs, void *state){
-	//kick_speed(100);
-	//stop_kicker(); //stop kicking arm
-	int flag;
+void PENALITY_MAIN(struct RoboAI *ai, void *state){
 	
-       switch (ai->st.state){
-       case 101: //Robot not behind ball w.r.t goal
-      
+double gate[] = {(0 - ai->st.side) * FIELD_X, FIELD_Y / 2.0};
+   	
+   switch (ai->st.state){
+	   case 101: //Robot not behind ball w.r.t goal
+	  
 			printf("BALL: X:Y (%f,%f)\n", ai->st.ball->cx,ai->st.ball->cy);
 			printf("Self: X:Y (%f,%f)\n", ai->st.self->cx,ai->st.self->cy);
+			printf("SIDE: %i\n", ai->st.side);
 			//ai->st.state = 101;
-       case 102: //Robot behind ball w.r.t goal and is at the incorrect angle for kicking
-       case 103: //robot behind ball w.r.t goal and is at the correct angle for kicking
-       case 104: //robot behind ball w.r.t goal and is at the correct angle for kicking robot is preparing to kick 
-       case 105: //robot is kicking
-		break;
-       }
+	   case 102: //Robot behind ball w.r.t goal and is at the incorrect angle for kicking
+	   case 103: //robot behind ball w.r.t goal and is at the correct angle for kicking
+	   case 104: //robot behind ball w.r.t goal and is at the correct angle for kicking robot is preparing to kick 
+	   case 105: //robot is kicking
+			break;
+   }
        
        
 }
