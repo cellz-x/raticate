@@ -511,6 +511,11 @@ void AI_main(struct RoboAI *ai, struct blob *blobs, void *state)
   *****************************************************************************/
   fprintf(stderr,"Just trackin'!\n");	// bot, opponent, and ball.
   track_agents(ai,blobs);		// Currently, does nothing but endlessly track
+  
+  if (ai->st.state<200) {
+	  PENALITY_MAIN(ai, blobs, state); 
+  }
+  
  }
 
 }
@@ -528,5 +533,24 @@ void AI_main(struct RoboAI *ai, struct blob *blobs, void *state)
  You will lose marks if AI_main() is cluttered with code that doesn't belong
  there.
 **********************************************************************************/
-
+void PENALITY_MAIN(struct RoboAI *ai, struct blob *blobs, void *state){
+	//kick_speed(100);
+	//stop_kicker(); //stop kicking arm
+	int flag;
+	
+       switch (ai->st.state){
+       case 101: //Robot not behind ball w.r.t goal
+      
+			printf("BALL: X:Y (%f,%f)\n", ai->st.ball->cx,ai->st.ball->cy);
+			printf("Self: X:Y (%f,%f)\n", ai->st.self->cx,ai->st.self->cy);
+			//ai->st.state = 101;
+       case 102: //Robot behind ball w.r.t goal and is at the incorrect angle for kicking
+       case 103: //robot behind ball w.r.t goal and is at the correct angle for kicking
+       case 104: //robot behind ball w.r.t goal and is at the correct angle for kicking robot is preparing to kick 
+       case 105: //robot is kicking
+		break;
+       }
+       
+       
+}
 
