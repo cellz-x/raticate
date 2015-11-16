@@ -45,8 +45,8 @@
 #define FINISH 208
 
 //variable
-#define FIELD_X 720
-#define FIELD_Y 720
+#define FIELD_X 1280
+#define FIELD_Y 1280
 
 //robot and ball position//
 double ball_x;
@@ -104,7 +104,7 @@ int CHASE_MAIN(struct RoboAI *ai, int state){
 			distance_y = fabs((ball_y - robo_y));
 			
 			if (distance_x >= 50 && distance_y >= 50){
-				kcik();
+				kick();
 				state = 206;
 				return state;
 			}else {
@@ -150,6 +150,7 @@ int CHASE_MAIN(struct RoboAI *ai, int state){
 	}
 
 }
+
 void clear_motion_flags(struct RoboAI *ai)
 {
  // Reset all motion flags. See roboAI.h for what each flag represents
@@ -635,23 +636,48 @@ void AI_main(struct RoboAI *ai, struct blob *blobs, void *state)
 **********************************************************************************/
 int PENALITY_MAIN(struct RoboAI *ai, int state){
 	
-   double gate[] = {(0 - ai->st.side) * FIELD_X, FIELD_Y / 2.0};
+   double gate[] = {fabs(1 - ai->st.side) * FIELD_X, FIELD_Y / 2.0};
    printf("STATE: %i\n", state);
+   all_stop();
+   double pre_x, pre_y;
+   pre_x = ai->st.ball->cx;
+   pre_y = ai->st.ball->cy;
    switch (state){
 	   case 101: //Robot not behind ball w.r.t goal
-	  
-			printf("BALL: X:Y (%f,%f)\n", ai->st.ball->cx,ai->st.ball->cy);
-			printf("Self: X:Y (%f,%f)\n", ai->st.self->cx,ai->st.self->cy);
-			printf("SIDE: %i\n", ai->st.side);
-			state = 102;
-	   case 102: //Robot behind ball w.r.t goal and is at the incorrect angle for kicking
-	   case 103: //robot behind ball w.r.t goal and is at the correct angle for kicking
-	   case 104: //robot behind ball w.r.t goal and is at the correct angle for kicking robot is preparing to kick 
-	   case 105: //robot is kicking
+			//move x position
+			if (ai->st.ball->cx - ai->st.self->x2 > 150) {
+				drive_speed(40);
+				state = 101;
+				if (ai->st.ball->cy - ai->st.self->y2 >= 10) {
+					turn_left_speed(40);
+				} 
+				all_stop();
+			} else if (ai->st.ball->cx - ai->st.self->x2 < 100 && ai->st.ball->cy - ai->st.self->cy <= 10) {
+				state = 102;
+			}
+			break;
+	   case 102: 
+			//turn angle 
+			if (ai->st.self->mx  != ai->st.ball->mx || ai->st.ball->my != ai->st.self->my) {
+				turn_left_speed(50);
+			}
+			state = 103;
+			break;
+	   case 103: 
+			kick();
+			
+			if (pre_x == ai->st.ball->cx && pre_y == ai->st.ball->cy) {
+				state = 101;
+			} else {
+				state = 104;
+			}
+			break;
+	   case 104:
+			retract();
 			break;
    }
-   
-   return state;
+   return state;	
+
 
        
        
