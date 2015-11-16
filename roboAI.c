@@ -34,23 +34,74 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void fsm(int mode, int state){
-	switch (mode){
-		case AI_CHASE:
-			switch (state){
-				case START:
-				case BALL_FOUND:
-				case BALL_NOT_FOUND:
-				case BEHIND_BALL:
-				case NOT_BEHIND_BALL:
-				case KICKED_BALL:
-				case MISSED_KICKED:
-				case FINSH:
-				
+//state//
+#define START 201
+#define BALL_FOUND 202
+#define BALL_NOT_FOUND 203
+#define BEHIND_BALL 204
+#define NOT_BEHIND_BALL 205
+#define KICKED_BALL 206 
+#define MISSED_KICKED 207
+
+//robot and ball position//
+double ball_x;
+double ball_y; 
+double robo_x; 
+double robo_y;
+
+void fsm_AI_CHASE(struct RoboAI *ai, int state){
+	
+	switch (state){
+		case START:
+			//Search for the position of the ball
+			//Localized self position
+			//Change state to BALL FOUND 202
+			ball_x = ai->st.ball->cx;
+			ball_y = ai->st.ball->cy;
+			robo_x = ai->st.self->cx;
+			robo_y = ai->st.self->cy;
+			
+			if (ball_x != NULL) state = 202;
+			else state = 203;
+			break;
+		
+		case BALL_FOUND:
+			//calculate the best angle and position to kick the ball
+			//move to that position
+			//Change State to BEHIND BALL 204
+			//use kaidia's function
+		
+		case BALL_NOT_FOUND:
+			//unlikely to happen leave empty for now
+			//wait until ball is found
+			
+			while (ball_x == NULL){
+				ball_x = ai->st.ball->cx;
+				ball_y = ai->st.ball->cy;
+				robo_x = ai->st.self->cx;
+				robo_y = ai->st.self->cy;
 			}
-		case AI_PENALTY:
-		case AI_SOCCER:
+			
+			state = 201;
+			
+		case BEHIND_BALL:
+			//Check ball is in front, if so then kick 
+			//and change state to 206
+			//if not, change state to 205
+		
+		case NOT_BEHIND_BALL:
+			// Change state to 201 
+			
+		case KICKED_BALL:
+			//Check that the ball is been kicked by localize the new
+			//position of the ball then change state to 207
+			//If not, change state to 207
+		case MISSED_KICKED:
+			//change state to 208
+		case FINSH:
+			//change state to 201 to repeat
 	}
+
 }
 void clear_motion_flags(struct RoboAI *ai)
 {
