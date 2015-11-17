@@ -36,17 +36,17 @@
 
 //state//
 #define START 201
-#define MOVE_TO_BALL 202
-#define BEHIND_BALL 203
-#define KICKED_BALL 204
-//#define BALL_NOT_FOUND 203
-//#define NOT_BEHIND_BALL 205 
-//#define MISSED_KICKED 207
-//#define FINISH 208
+#define BALL_FOUND 202
+#define BALL_NOT_FOUND 203
+#define BEHIND_BALL 204
+#define NOT_BEHIND_BALL 205
+#define KICKED_BALL 206 
+#define MISSED_KICKED 207
+#define FINISH 208
 
 //variable
-#define FIELD_X 720
-#define FIELD_Y 720
+#define FIELD_X 1024
+#define FIELD_Y 768
 
 //robot and ball position//
 double ball_x;
@@ -60,7 +60,6 @@ double opp_y;
 int CHASE_MAIN(struct RoboAI *ai, int state){
 	double distance_x;
 	double distance_y;
-	
 	switch (state){
 		case START:
 			//Search for the position of the ball
@@ -71,40 +70,51 @@ int CHASE_MAIN(struct RoboAI *ai, int state){
 			robo_x = ai->st.self->cx;
 			robo_y = ai->st.self->cy;
 			
-			//ball found
 			if (ball_x) state = 202;
-			//lost track of ball
-			else state = 201;
+			else state = 203;
 			
 			return state;
 		
-		case MOVE_TO_BALL:
+		case BALL_FOUND:
 			//move the robot to the position of the ball
-			//Change State to BEHIND BALL 203
+			//Change State to BEHIND BALL 204
 			//use kaidia's function
+			
+		case BALL_NOT_FOUND:
+			//unlikely to happen leave empty for now
+			//wait until ball is found
+			
+			while (!ball_x){
+				ball_x = ai->st.ball->cx;
+				ball_y = ai->st.ball->cy;
+				robo_x = ai->st.self->cx;
+				robo_y = ai->st.self->cy;
+			}
+			
+			state = 201;
+			return state;
 			
 		case BEHIND_BALL:
 			//Check ball is in front, if so then kick 
-			//and change state to 204
-			//if not, change state to 201
-			ball_x = ai->st.ball->cx;
-			ball_y = ai->st.ball->cy;
-			robo_x = ai->st.self->cx;
-			robo_y = ai->st.self->cy;
+			//and change state to 206
+			//if not, change state to 205
 			
 			distance_x = fabs((ball_x - robo_x));
 			distance_y = fabs((ball_y - robo_y));
 			
-			//behind ball
 			if (distance_x >= 50 && distance_y >= 50){
-				kcik();
-				state = 203;
+				kick();
+				state = 206;
 				return state;
-			//lost track of ball
 			}else {
-				state = 201;
+				state = 205;
 				return state;
 			}
+			
+		case NOT_BEHIND_BALL:
+			// Change state to 201 
+			state = 201;
+			return state;
 			
 		case KICKED_BALL:
 			//Check that the ball is been kicked by localize the new
@@ -120,15 +130,26 @@ int CHASE_MAIN(struct RoboAI *ai, int state){
 				robo_x = ai->st.self->cx;
 				robo_y = ai->st.self->cy;
 				
-				state = 201;
 				return state;
 			}else{
-				state = 202;
+				state = 207;
 				return state;
 			}
+			
+		case MISSED_KICKED:
+			//change state to 201
+			state = 201;
+			return state;
+			
+		case FINISH:
+			//change state to 201 to repeat
+			state = 201;
+			return state;
+			
 	}
 
 }
+
 void clear_motion_flags(struct RoboAI *ai)
 {
  // Reset all motion flags. See roboAI.h for what each flag represents
@@ -616,41 +637,38 @@ int PENALITY_MAIN(struct RoboAI *ai, int state){
 	
    double gate[] = {fabs(1 - ai->st.side) * FIELD_X, FIELD_Y / 2.0};
    printf("STATE: %i\n", state);
-   all_stop();
-   double pre_x, pre_y;
-   pre_x = ai->st.ball->cx;
-   pre_y = ai->st.ball->cy;
+   //printf("robot: mx:%f  |my:%f  |dx:%f   |dy:%f \n", ai->st.self->mx,ai->st.self->my,ai->st.self->dx,ai->st.self->dy);
+   //printf("ball:  mx:%f  |my:%f  |dx:%f   |dy:%f \n", ai->st.ball->mx,ai->st.ball->my,ai->st.ball->dx,ai->st.ball->dy);
+   printf("robotcx:%f  |robotcy:%f |ballcx:%f |ballcy:%f\n",ai->st.self->cx,ai->st.self->cy,ai->st.ball->cx,ai->st.ball->cy);
+
+
    switch (state){
-	   case 101: //Robot not behind ball w.r.t goal
-			//move x position
-			if (ai->st.ball->cx - ai->st.self->x2 > 150) {
-				drive_speed(40);
-				state = 101;
-				if (ai->st.ball->cy - ai->st.self->y2 >= 10) {
-					turn_left_speed(40);
-				} 
-				all_stop();
-			} else if (ai->st.ball->cx - ai->st.self->x2 < 100 && ai->st.ball->cy - ai->st.self->cy <= 10) {
+	   case 101: //not behind the ball
+			printf("101");
+			if (fabs(ai->st.ball->cx - ai->st.self->cx) > 200 ||
+					fabs(ai->st.ball->cy - ai->st.self->cy) > 200) {
+				drive_speed(20);
+			} else {
 				state = 102;
 			}
 			break;
-	   case 102: 
-			//turn angle 
-			if (ai->st.self->mx  != ai->st.ball->mx || ai->st.ball->my != ai->st.self->my) {
-				turn_left_speed(50);
+		case 102: //behind, but at incorrect angle
+			printf("I AM IN 102");
+			all_stop();
+			if (ai->st.self->dx < 0.95) {
+				if (ai->st.self->dx < 0)
+					pivot_right_speed(20);
+				if (ai->st.self->dx > 0)
+					pivot_left_speed(20);
 			}
-			state = 103;
+			all_stop();
+			state = 104;
 			break;
-	   case 103: 
+		case 104:
 			kick();
-			
-			if (pre_x == ai->st.ball->cx && pre_y == ai->st.ball->cy) {
-				state = 101;
-			} else {
-				state = 104;
-			}
+			state = 105;
 			break;
-	   case 104:
+		case 105:
 			retract();
 			break;
    }
@@ -660,3 +678,4 @@ int PENALITY_MAIN(struct RoboAI *ai, int state){
        
        
 }
+
