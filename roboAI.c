@@ -83,7 +83,7 @@ int CHASE_MAIN(struct RoboAI *ai, int state){
 			//lost track of ball
 			else state = 201;
 			
-			return state;
+			break;
 		
 		case MOVE_TO_BALL:
 			//move the robot to the position of the ball
@@ -91,13 +91,20 @@ int CHASE_MAIN(struct RoboAI *ai, int state){
 			//use kadia's function
 			
 			pivot_left(20);
-			if (ai->st.self->dx <= 0.9){
+			if (ai->st.self->dx <= 0.6){
+				printf("dx:%f\n", ai->st.self->dx);
 				pivot_left();
+			}else if (fabs(ai->st.ball->cx - ai->st.self->cx) > 200 ||
+					fabs(ai->st.ball->cy - ai->st.self->cy) > 200) {
+				drive_speed(20);
+				printf("driving\n");
+			}else{
+				state = 203;
 			}
+			printf("in move to ball loop\n");
+			all_stop();
 			
-			drive();
-			
-			return state;
+			break;
 			
 		case BEHIND_BALL:
 			//Check ball is in front, if so then kick 
@@ -112,16 +119,16 @@ int CHASE_MAIN(struct RoboAI *ai, int state){
 			distance_y = fabs((ball_y - robo_y));
 			
 			//behind ball
-			if (distance_x >= 50 && distance_y >= 50){
+			if (distance_x <= 50 && distance_y <= 50){
 				kick();
 				state = 203;
-				return state;
+			
 			//lost track of ball
 			}else {
 				state = 201;
-				return state;
+				
 			}
-			
+			break;
 		case KICKED_BALL:
 			//Check that the ball is been kicked by localize the new
 			//position of the ball then change state to 207
@@ -137,12 +144,14 @@ int CHASE_MAIN(struct RoboAI *ai, int state){
 				robo_y = ai->st.self->cy;
 				
 				state = 201;
-				return state;
+		
 			}else{
 				state = 202;
-				return state;
+			
 			}
+			break;
 	}
+	return state;
 
 }
 
@@ -676,4 +685,3 @@ int PENALITY_MAIN(struct RoboAI *ai, int state){
        
        
 }
-
